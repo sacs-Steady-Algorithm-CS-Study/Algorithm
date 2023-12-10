@@ -6,7 +6,6 @@ import java.util.StringTokenizer;
 public class Sol_14225 {
 
     public static void main(String[] args) throws IOException {
-        System.out.println();
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
