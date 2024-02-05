@@ -1,66 +1,82 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
 public class Sol_15684 {
 
-    static int N, M, H;
-    static boolean [][][] connectionCheck;
-    static boolean [][][] visitedCheck;
-    static int minCnt [];
-    public static void main(String[] args) throws IOException {
+    static int N, H, M;
+    static int[][] ladder;
+    static int Answer;
 
+    public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
         N = Integer.parseInt(st.nextToken());
         M = Integer.parseInt(st.nextToken());
         H = Integer.parseInt(st.nextToken());
-        connectionCheck = new boolean[M+2][N+1][N+1];
-
-        for (int i = 0; i < M; i++) {
-                st = new StringTokenizer(br.readLine());
-                int a = Integer.parseInt(st.nextToken());
-                int b = Integer.parseInt(st.nextToken());
-                connectionCheck[a][b][b+1] = true;
-                connectionCheck[a][b+1][b] = true;
+        ladder = new int[H + 2][N + 1];
+        for (int i = 1; i <= M; i++) {
+            st = new StringTokenizer(br.readLine());
+            int a = Integer.parseInt(st.nextToken());
+            int b = Integer.parseInt(st.nextToken());
+            ladder[a][b] = b + 1;
+            ladder[a][b + 1] = b;
         }
-        minCnt = new int[N+1];
-
-        for(int i = 1 ; i<=N ;i++){
-                minCnt[i] = Integer.MAX_VALUE;
-                int r = 1;
-                int c = i;
-
+        Answer = Integer.MAX_VALUE;
+        for (int i = 0; i <= 3; i++) {
+            setLadderLine(i, 0, N + 1);
+            if (Answer != Integer.MAX_VALUE)
+                break;
+        }
+        if (Answer == Integer.MAX_VALUE) {
+            System.out.println(-1);
         }
     }
-    static void setLine(){
 
-    }
-    static boolean move(int r , int c , int target){
-            while (r < M+2){
-                if(r == M+1){
-                    if(target == c){
-                        return true;
-                    }
+    static void setLadderLine(int lineCnt, int setCnt, int idx) {
+        if (lineCnt == setCnt) {
+            boolean correct = true;
+            for (int i = 1; i <= N; i++) {
+                if (!playGame(i)) {
+                    correct = false;
                     break;
                 }
-                if(c-1 > 0){
-                    if(connectionCheck[r][c][c-1]){
-                        c--;
-                    }
-                }
-                else if(c+1 < N+1){
-                    if(connectionCheck[r][c][c+1]){
-                        c++;
-                    }
-                }
-                else{
-                        r++;
-                }
             }
-        return  false;
+            if (correct) {
+                Answer = Math.min(Answer, lineCnt);
+                System.out.println(Answer);
+                System.exit(0);
+            }
+            return;
+        }
+        if (idx == N * (H + 1))
+            return;
+        int row = idx / N;
+        int col = idx % N;
+        if (col <= N - 1) {
+            if (ladder[row][col] == 0 && ladder[row][col + 1] == 0) {
+                ladder[row][col] = col + 1;
+                ladder[row][col + 1] = col;
+                setLadderLine(lineCnt, setCnt + 1, idx + 1);
+                ladder[row][col] = 0;
+                ladder[row][col + 1] = 0;
+            }
+        }
+        setLadderLine(lineCnt, setCnt, idx + 1);
     }
+
+    static boolean playGame(int start) {
+        int line = start;
+        for (int i = 1; i <= H + 1; i++) {
+            if (ladder[i][line] != 0) {
+                line = ladder[i][line];
+            }
+        }
+        if (start == line) {
+            return true;
+        }
+        return false;
+    }
+
 }
