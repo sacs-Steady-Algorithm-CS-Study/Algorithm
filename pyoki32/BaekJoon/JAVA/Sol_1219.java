@@ -1,111 +1,124 @@
-    import java.io.BufferedReader;
-    import java.io.IOException;
-    import java.io.InputStreamReader;
-    import java.util.ArrayList;
-    import java.util.PriorityQueue;
-    import java.util.StringTokenizer;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.PriorityQueue;
+import java.util.StringTokenizer;
 
-    public class Sol_1219 {
+public class Main {
 
-        static class City {
-            int num, cost;
-            Long pay;
+    static class Edge {
+        int start, end, profit;
 
-            public City(int num, int cost, Long pay) {
-                this.num = num;
-                this.cost = cost;
-                this.pay = pay;
-            }
+        public Edge(int start, int end, int profit) {
+            this.start = start;
+            this.end = end;
+            this.profit = profit;
+        }
+    }
+
+    static int N, M;
+    static int sCity, eCity;
+    static int[][] costArr;
+    static int[] profit;
+    static int[] maxProfit;
+    static boolean[] visited;
+
+    static boolean cycleCheck;
+    static ArrayList<ArrayList<Integer>> adjList = new ArrayList<>();
+
+    public static void main(String[] args) throws IOException {
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
+
+        N = Integer.parseInt(st.nextToken());
+        sCity = Integer.parseInt(st.nextToken());
+        eCity = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+        costArr = new int[N][N];
+
+        for (int i = 0; i < N; i++) {
+            adjList.add(new ArrayList<>());
         }
 
-        static int N, M;
-        static int sCity, eCity;
-        static boolean [] cycleCheck;
-        static long[] maxPayArr;
-        static long[] payArr;
-        static ArrayList<ArrayList<City>> adjList = new ArrayList<>();
-
-        public static void main(String[] args) throws IOException {
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            StringTokenizer st = new StringTokenizer(br.readLine());
-
-            N = Integer.parseInt(st.nextToken());
-            sCity = Integer.parseInt(st.nextToken());
-            eCity = Integer.parseInt(st.nextToken());
-            M = Integer.parseInt(st.nextToken());
-
-            for (int i = 0; i < N; i++) {
-                adjList.add(new ArrayList<>());
-            }
-
-            for (int i = 0; i < M; i++) {
-                st = new StringTokenizer(br.readLine());
-                int start = Integer.parseInt(st.nextToken());
-                int end = Integer.parseInt(st.nextToken());
-                int cost = Integer.parseInt(st.nextToken());
-                long initLong = 0;
-                adjList.get(start).add(new City(end, cost, initLong ));
-            }
-
-            maxPayArr = new long[N];
-            payArr = new long[N];
+        for (int i = 0; i < M; i++) {
             st = new StringTokenizer(br.readLine());
-            for (int i = 0; i < N; i++) {
-                maxPayArr[i] = Long.parseLong(st.nextToken());
-                if (i != sCity) {
-                    payArr[i] = Long.MIN_VALUE;
-                }
-            }
-            payArr[sCity] = maxPayArr[sCity];
-            cycleCheck  = new boolean[N];
-            solve();
-            if (payArr[eCity] == Long.MIN_VALUE) {
-                System.out.println("gg");
-            } else {
-                if (cycleCheck[eCity]) {
-                    System.out.println("Gee");
-                } else {
-                    System.out.println(payArr[eCity]);
-                }
-            }
+            int start = Integer.parseInt(st.nextToken());
+            int end = Integer.parseInt(st.nextToken());
+            int cost = Integer.parseInt(st.nextToken());
+            adjList.get(start).add(end);
+            costArr[start][end] = cost;
+        }
+        st = new StringTokenizer(br.readLine());
+        profit = new int[N];
+        for (int i = 0; i < N; i++) {
+            profit[i] = Integer.parseInt(st.nextToken());
         }
 
-        static void solve() {
+        visited = new boolean[N];
+        goalCheck(sCity);
+        if(sCity == eCity) visited[sCity] = true;
+        bellmanford();
 
-            PriorityQueue<City> pq = new PriorityQueue<>((o1, o2) -> {
-                return -(o1.pay.compareTo(o2.pay));
-                /* return  -(o1.pay - o2.pay);*/
-            });
+        if (!visited[eCity]) {
+            System.out.println("gg");
+        } else if (cycleCheck) {
+            System.out.println("Gee");
+        } else {
+            System.out.println(maxProfit[eCity]);
+        }
+    }
 
-            //init
-            ArrayList<City> startList = adjList.get(sCity);
-
-            for (City city : startList) {
-                payArr[city.num] = maxPayArr[sCity]+maxPayArr[city.num] - city.cost;
-                pq.add(new City(city.num, city.cost, payArr[city.num]));
-            }
-
-            int visitedCnt = 1;
-            while (!pq.isEmpty()) {
-
-                City pCity = pq.poll();
-
-                if (visitedCnt > N) {
-                    cycleCheck[pCity.num] = true;
-                }
-                visitedCnt++;
-
-                if(!cycleCheck[pCity.num]){
-                    ArrayList<City> nStartList = adjList.get(pCity.num);
-                    for (City nCity : nStartList) {
-                        if (payArr[nCity.num] < maxPayArr[nCity.num] - nCity.cost + payArr[pCity.num]) {
-                            payArr[nCity.num] = maxPayArr[nCity.num] - nCity.cost + payArr[pCity.num];
-                            pq.add(new City(nCity.num, nCity.cost, payArr[nCity.num]));
-                        }
-                    }
-                }
-
+    static void goalCheck(int node) {
+        ArrayList<Integer> nextNodes = adjList.get(node);
+        for (int nextNode : nextNodes) {
+            if (!visited[nextNode]) {
+                visited[nextNode] = true;
+                goalCheck(nextNode);
             }
         }
     }
+
+    static void bellmanford() {
+        maxProfit = new int[N];
+        for (int i = 0; i < N; i++) {
+            maxProfit[i] = Integer.MIN_VALUE;
+        }
+        maxProfit[sCity] = profit[sCity];
+
+        PriorityQueue<Edge> pq = new PriorityQueue<>((E1, E2) -> {
+            return E2.profit - E1.profit;
+        });
+
+        ArrayList<Integer> initNodes = adjList.get(sCity);
+        for (int nextNode : initNodes) {
+            if (maxProfit[nextNode] < maxProfit[sCity] + (profit[nextNode] - costArr[sCity][nextNode])) {
+                maxProfit[nextNode] = maxProfit[sCity] + profit[nextNode] - costArr[sCity][nextNode];
+                pq.add(new Edge(sCity, nextNode, maxProfit[nextNode]));
+            }
+        }
+        int[] upDateCnt = new int[N];
+
+        while (!pq.isEmpty()) {
+            Edge edge = pq.poll();
+            int end = edge.end;
+            ArrayList<Integer> nextNodes = adjList.get(end);
+            for (int nextNode : nextNodes) {
+                if (upDateCnt[nextNode] > N) {
+                    break;
+                }
+                if (maxProfit[nextNode] < maxProfit[end] + (profit[nextNode] - costArr[end][nextNode])) {
+                    maxProfit[nextNode] = maxProfit[end] + (profit[nextNode] - costArr[end][nextNode]);
+                    upDateCnt[nextNode]++;
+                    pq.add(new Edge(end, nextNode, maxProfit[nextNode]));
+                }
+            }
+        }
+        for (int i = 0; i < N; i++) {
+            if(upDateCnt[sCity] > 2){
+                cycleCheck = true;
+            }
+        }
+    }
+}
