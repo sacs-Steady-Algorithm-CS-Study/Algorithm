@@ -5,12 +5,13 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
-public class Main {
+public class Sol_1219 {
 
     static class Edge {
-        int start, end, profit;
+        int start, end;
+        long profit;
 
-        public Edge(int start, int end, int profit) {
+        public Edge(int start, int end, long profit) {
             this.start = start;
             this.end = end;
             this.profit = profit;
@@ -19,9 +20,9 @@ public class Main {
 
     static int N, M;
     static int sCity, eCity;
-    static int[][] costArr;
-    static int[] profit;
-    static int[] maxProfit;
+    static long[][] costArr;
+    static long[] profit;
+    static long[] maxProfit;
     static boolean[] visited;
 
     static boolean cycleCheck;
@@ -36,7 +37,7 @@ public class Main {
         sCity = Integer.parseInt(st.nextToken());
         eCity = Integer.parseInt(st.nextToken());
         M = Integer.parseInt(st.nextToken());
-        costArr = new int[N][N];
+        costArr = new long[N][N];
 
         for (int i = 0; i < N; i++) {
             adjList.add(new ArrayList<>());
@@ -46,14 +47,14 @@ public class Main {
             st = new StringTokenizer(br.readLine());
             int start = Integer.parseInt(st.nextToken());
             int end = Integer.parseInt(st.nextToken());
-            int cost = Integer.parseInt(st.nextToken());
+            long cost = Long.parseLong(st.nextToken());
             adjList.get(start).add(end);
             costArr[start][end] = cost;
         }
         st = new StringTokenizer(br.readLine());
-        profit = new int[N];
+        profit = new long[N];
         for (int i = 0; i < N; i++) {
-            profit[i] = Integer.parseInt(st.nextToken());
+            profit[i] = Long.parseLong(st.nextToken());
         }
 
         visited = new boolean[N];
@@ -63,7 +64,7 @@ public class Main {
 
         if (!visited[eCity]) {
             System.out.println("gg");
-        } else if (cycleCheck) {
+        } else if (maxProfit[eCity] == Long.MAX_VALUE) {
             System.out.println("Gee");
         } else {
             System.out.println(maxProfit[eCity]);
@@ -81,15 +82,13 @@ public class Main {
     }
 
     static void bellmanford() {
-        maxProfit = new int[N];
+        maxProfit = new long[N];
         for (int i = 0; i < N; i++) {
-            maxProfit[i] = Integer.MIN_VALUE;
+            maxProfit[i] = Long.MIN_VALUE;
         }
         maxProfit[sCity] = profit[sCity];
 
-        PriorityQueue<Edge> pq = new PriorityQueue<>((E1, E2) -> {
-            return E2.profit - E1.profit;
-        });
+        PriorityQueue<Edge> pq = new PriorityQueue<>((e1, e2) -> Long.compare(e2.profit, e1.profit));
 
         ArrayList<Integer> initNodes = adjList.get(sCity);
         for (int nextNode : initNodes) {
@@ -105,19 +104,23 @@ public class Main {
             int end = edge.end;
             ArrayList<Integer> nextNodes = adjList.get(end);
             for (int nextNode : nextNodes) {
-                if (upDateCnt[nextNode] > N) {
-                    break;
-                }
+
                 if (maxProfit[nextNode] < maxProfit[end] + (profit[nextNode] - costArr[end][nextNode])) {
                     maxProfit[nextNode] = maxProfit[end] + (profit[nextNode] - costArr[end][nextNode]);
                     upDateCnt[nextNode]++;
                     pq.add(new Edge(end, nextNode, maxProfit[nextNode]));
+                    if(upDateCnt[nextNode] >N+50){
+                        maxProfit[nextNode] = Long.MAX_VALUE;
+                    }
+                }else{
+                    if((profit[nextNode] - costArr[end][nextNode])> 0){
+                        upDateCnt[nextNode]++;
+                        pq.add(new Edge(end, nextNode, maxProfit[nextNode]));
+                        if(upDateCnt[nextNode] >N+50){
+                            maxProfit[nextNode] = Long.MAX_VALUE;
+                        }
+                    }
                 }
-            }
-        }
-        for (int i = 0; i < N; i++) {
-            if(upDateCnt[sCity] > 2){
-                cycleCheck = true;
             }
         }
     }
