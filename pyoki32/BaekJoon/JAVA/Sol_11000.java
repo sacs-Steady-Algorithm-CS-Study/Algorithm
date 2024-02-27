@@ -1,101 +1,53 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
-public class Sol_18428 {
-    static class Point {
-        int r, c;
+public class Sol_11000 {
 
-        public Point(int r, int c) {
-            this.r = r;
-            this.c = c;
+    static class SuGang {
+        int start, end;
+
+        public SuGang(int start, int end) {
+            this.start = start;
+            this.end = end;
         }
     }
-
-    static int N;
-    static int[] dRow = {-1, 1, 0, 0};
-    static int[] dCol = {0, 0, -1, 1};
-    static ArrayList<Point> teacherPoint;
-    static char[][] map;
-    static boolean ansCheck;
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
+        int N = Integer.parseInt(st.nextToken());
 
-        N = Integer.parseInt(st.nextToken());
-        teacherPoint = new ArrayList<>();
-        map = new char[N][N];
+        PriorityQueue<SuGang> spq = new PriorityQueue<>((o1, o2) -> {
+            if (o1.start == o2.start) {
+                return o1.end - o2.end;
+            }
+            return o1.start - o2.start;
+        });
+
         for (int i = 0; i < N; i++) {
             st = new StringTokenizer(br.readLine());
-            for (int j = 0; j < N; j++) {
-                map[i][j] = st.nextToken().charAt(0);
-                if (map[i][j] == 'T') {
-                    teacherPoint.add(new Point(i, j));
-                }
+            int S = Integer.parseInt(st.nextToken());
+            int T = Integer.parseInt(st.nextToken());
+            spq.add(new SuGang(S, T));
+        }
+
+        PriorityQueue<Integer> classPq = new PriorityQueue<>();
+        classPq.add(spq.poll().end);
+
+        while (!spq.isEmpty()) {
+            SuGang sq = spq.poll();
+            int start = sq.start;
+            int end = sq.end;
+
+            if (classPq.peek() <= start) {
+                classPq.poll();
             }
+            classPq.add(end);
         }
-        ansCheck = false;
-        setO(0, 3);
-        if (ansCheck) {
-            System.out.println("YES");
-        } else {
-            System.out.println("NO");
-        }
+        System.out.println(classPq.size());
     }
 
-    static void setO(int idx, int cnt) {
-
-        if (cnt == 0) {
-            if (ansCheck()) {
-                ansCheck = true;
-            }
-            return;
-        }
-        if (idx > (N * N) - 1) {
-            return;
-        }
-        int row = idx / N;
-        int col = idx % N;
-        if (map[row][col] == 'X') {
-            map[row][col] = 'O';
-            setO(idx + 1, cnt - 1);
-            map[row][col] = 'X';
-            setO(idx + 1, cnt);
-        } else {
-            setO(idx + 1, cnt);
-        }
-    }
-
-    static boolean ansCheck() {
-
-        for (Point p : teacherPoint) {
-            for (int k = 0; k < 4; k++) {
-                int len = 1;
-
-                while (true) {
-                    int nRow = p.r + dRow[k] * len;
-                    int nCol = p.c + dCol[k] * len;
-                    if (isRange(nRow, nCol)) {
-                        if (map[nRow][nCol] == 'S') {
-                            return false;
-                        } else if (map[nRow][nCol] == 'O') {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                    len++;
-                }
-            }
-        }
-        return true;
-    }
-
-    static boolean isRange(int nRow, int nCol) {
-        if (nRow < 0 || nRow > N - 1 || nCol < 0 || nCol > N - 1) return false;
-        return true;
-    }
 }
