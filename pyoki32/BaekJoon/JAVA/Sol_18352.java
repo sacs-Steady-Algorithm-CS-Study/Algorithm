@@ -1,43 +1,80 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
+import java.util.*;
 
-public class Sol_1654 {
+public class Sol_18352 {
+
+    static class Move {
+        int node, dist;
+
+        public Move(int node, int dist) {
+            this.node = node;
+            this.dist = dist;
+        }
+    }
+
+    static int N, M, K, X;
+    static ArrayList<Integer> ans;
+    static ArrayList<ArrayList<Integer>> adjList;
+
     public static void main(String[] args) throws IOException {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-        int K = Integer.parseInt(st.nextToken());
-        int N = Integer.parseInt(st.nextToken());
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+        K = Integer.parseInt(st.nextToken());
+        X = Integer.parseInt(st.nextToken());
+        adjList = new ArrayList<>();
+        for (int i = 0; i <= N; i++) {
+            adjList.add(new ArrayList<>());
+        }
 
-        long[] lan = new long[K];
-        long maxLan = 0;
-        for (int i = 0; i < K; i++) {
+        for (int i = 0; i < M; i++) {
             st = new StringTokenizer(br.readLine());
-            lan[i] = Long.parseLong(st.nextToken());
-            maxLan = Math.max(maxLan, lan[i]);
+            int start = Integer.parseInt(st.nextToken());
+            int end = Integer.parseInt(st.nextToken());
+            adjList.get(start).add(end);
         }
-        long left = 1;
-        long right = maxLan;
-        long answer = 0;
+        ans = new ArrayList<>();
+        bfs();
 
-        while (left <= right) {
-            long mid = (left + right) / 2;
+        Collections.sort(ans);
+        StringBuilder sb = new StringBuilder();
+        for (int n : ans) {
+            sb.append(n).append('\n');
+        }
+        if (ans.size() == 0) {
+            System.out.println(-1);
+        } else {
+            System.out.println(sb);
+        }
+    }
 
-            int cnt = 0;
-            for (int i = 0; i < K; i++) {
-                cnt += lan[i] / mid;
+    static void bfs() {
+        boolean[] visited = new boolean[N + 1];
+        Queue<Move> q = new LinkedList();
+        visited[X] = true;
+        q.add(new Move(X, 0));
+
+        while (!q.isEmpty()) {
+            Move m = q.poll();
+            int node = m.node;
+            int dist = m.dist;
+
+            if (dist == K) {
+                ans.add(node);
             }
-            //길이를 늘려야함
-            if (cnt >= N) {
-                answer = Math.max(answer, mid);
-                left = mid + 1;
-            } else {
-                right = mid - 1;
+
+            ArrayList<Integer> list = adjList.get(node);
+            for (int nNode : list) {
+                if (!visited[nNode]) {
+                    visited[nNode] = true;
+                    q.add(new Move(nNode, dist + 1));
+                }
             }
         }
-        System.out.println(answer);
     }
 }
