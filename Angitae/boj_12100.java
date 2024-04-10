@@ -1,3 +1,5 @@
+package Angitae;
+
 import java.io.*;
 import java.util.*;
 public class boj_12100 {
