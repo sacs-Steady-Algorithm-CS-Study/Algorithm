@@ -1,78 +1,77 @@
 import java.util.*;
 
-class KAKAO2022_양궁대회 {
-    static int[] res;
-    static int maxRes;
+class KAKAO2022_외벽점검 {
 
-    public int[] solution(int n, int[] info) {
-        int[] answer = new int[11];
-        res = new int[11];
-        maxRes = 0;
-        int[] pickedArrowCnt = new int[11];
-        shootArrow(info, pickedArrowCnt, 0, n);
-        for (int i = 0; i <= 10; i++) {
-            answer[i] = res[i];
-        }
-        if (maxRes == 0) {
-            answer = new int[1];
-            answer[0] = -1;
-        }
-        return answer;
-    }
+    static boolean[] visited;
+    static int[][] weakArr;
+    static int ans;
 
-    public void shootArrow(int[] info, int[] pickedArrowCnt, int idx, int ArrowCnt) {
-
-        if (idx > pickedArrowCnt.length - 1) {
-            int getPoint = calPoint(info, pickedArrowCnt);
-            if (maxRes < getPoint) {
-                maxRes = getPoint;
-                for (int i = 0; i < pickedArrowCnt.length; i++) {
-                    res[i] = pickedArrowCnt[i];
-                }
-            } else if (maxRes == getPoint) {
-                if (changeArrCheck(pickedArrowCnt)) {
-                    for (int i = 0; i < pickedArrowCnt.length; i++) {
-                        res[i] = pickedArrowCnt[i];
+    public int solution(int n, int[] weak, int[] dist) {
+        int answer = 0;
+        weakArr = new int[weak.length][weak.length * 2];
+        int lastGap = n - weak[weak.length - 1] + weak[0];
+        for (int i = 0; i < weakArr.length; i++) {
+            for (int j = 0; j < weakArr.length; j++) {
+                if (i == 0) weakArr[i][j] = weak[j];
+                else {
+                    if (j + 1 < weakArr.length) weakArr[i][j] = weakArr[i - 1][j + 1];
+                    else {
+                        weakArr[i][j] = weakArr[i - 1][(j + 1) % weak.length] + n;
                     }
                 }
             }
+        }
+
+        int[] pick = new int[dist.length];
+        visited = new boolean[dist.length];
+        ans = Integer.MAX_VALUE;
+        dfs(0, pick, dist);
+        answer = ans;
+
+        if (answer == Integer.MAX_VALUE) answer = -1;
+        return answer;
+    }
+
+    static void dfs(int depth, int[] pick, int[] dist) {
+
+        if (depth >= dist.length) {
+            ans = Math.min(inputFriends(pick), ans);
             return;
         }
-        //이기거나
-        if (ArrowCnt > info[idx]) {
-            pickedArrowCnt[idx] = (info[idx] + 1);
-            shootArrow(info, pickedArrowCnt, idx + 1, ArrowCnt - (info[idx] + 1));
-            pickedArrowCnt[idx] = 0;
-        }
-        //비기거나 지거나
-        for (int c = 0; c <= info[idx]; c++) {
-            if (ArrowCnt >= (info[idx] - c)) {
-                pickedArrowCnt[idx] = info[idx] - c;
-                shootArrow(info, pickedArrowCnt, idx + 1, ArrowCnt - (info[idx] - c));
-                pickedArrowCnt[idx] = 0;
+        for (int i = 0; i < dist.length; i++) {
+            if (!visited[i]) {
+                visited[i] = true;
+                pick[depth] = dist[i];
+                dfs(depth + 1, pick, dist);
+                visited[i] = false;
             }
         }
     }
 
-    public int calPoint(int[] info, int[] pickedArrowCnt) {
-
-        int lion = 0;
-        int apeach = 0;
-        for (int i = 0; i < pickedArrowCnt.length; i++) {
-            if (info[i] < pickedArrowCnt[i]) {
-                lion += (10 - i);
-            } else {
-                if (info[i] > 0) apeach += (10 - i);
+    static int inputFriends(int[] pick) {
+        int res = Integer.MAX_VALUE;
+        for (int i = 0; i < weakArr.length; i++) {
+            int friendCnt = 0;
+            int checkCnt = 0;
+            int weak_idx = 0;
+            int pickIdx = 0;
+            int end = -1;
+            while (weak_idx < weakArr.length) {
+                if (end < weakArr[i][weak_idx]) {
+                    if (pickIdx >= pick.length) break;
+                    end = weakArr[i][weak_idx] + pick[pickIdx];
+                    pickIdx++;
+                    friendCnt++;
+                } else {
+                    checkCnt++;
+                    weak_idx++;
+                }
+            }
+            if (checkCnt == weakArr.length) {
+                res = Math.min(friendCnt, res);
             }
         }
-        return lion - apeach;
+        return res;
     }
 
-    public boolean changeArrCheck(int[] pickedArrowCnt) {
-        for (int i = pickedArrowCnt.length - 1; i >= 0; i--) {
-            if (res[i] < pickedArrowCnt[i]) return true;
-            else if (res[i] > pickedArrowCnt[i]) break;
-        }
-        return false;
-    }
 }
